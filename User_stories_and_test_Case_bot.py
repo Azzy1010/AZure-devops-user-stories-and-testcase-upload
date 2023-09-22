@@ -1,3 +1,4 @@
+import os
 import time
 import csv
 from selenium.webdriver.common.by import By
@@ -15,13 +16,12 @@ def browser_open():
     pyautogui.write('cmd')
     pyautogui.press('enter')
     time.sleep(1)
-    pyautogui.write('cd "C:\Program Files\Google\Chrome\Application"')
-    pyautogui.press('enter')
+    # pyautogui.write('cd "C:\Program Files\Google\Chrome\Application"')
+    # pyautogui.press('enter')
     pyautogui.write('chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\Chromedata"')
     pyautogui.press('enter')
     pyautogui.write('exit')
     pyautogui.press('enter')
-
 
 def file_csv():
     root = tk.Tk()
@@ -62,7 +62,7 @@ def user_stories_creation():
     turn = 0
     dataframe = openpyxl.load_workbook(f"{file_loc}")
     dataframe1 = dataframe.active
-    global title, priority_val, who_val, wants_to_do_val, so_that_val, given_val, when_val, then_val, feature,sprint
+    global title, priority_val, who_val, wants_to_do_val, so_that_val, given_val, when_val, then_val, feature, sprint
     for row in range(1, dataframe1.max_row):
         time.sleep(3)
         pyautogui.hotkey('esc')
@@ -169,7 +169,7 @@ def user_stories_creation():
 
 
 def testcase_creation():
-    driver.get('https://dev.azure.com/ObeikanDigitalSol/O3Scrum/_sprints/taskboard/O3Scrum%20Team/O3Scrum/Sprint%203')
+    driver.get('https://dev.azure.com/ObeikanDigitalSol/O3Scrum/_sprints/taskboard/O3Scrum%20Team/O3Scrum/Sprint%205')
     time.sleep(3)
     pyautogui.press('esc')
     dataframe = openpyxl.load_workbook(f"{test_Cases_loc}")
@@ -219,13 +219,13 @@ def testcase_creation():
                                         f'//*[contains(text(),"{title_US}") and contains(@class,"clickable-title")]').click()
                 except:
                     e = 'User story not created'
-            time.sleep(3)
+            driver.implicitly_wait(5)
             driver.find_element(By.XPATH, "//*[contains(@aria-label,'Links') and (@aria-posinset='3')]").click()
-            time.sleep(1)
+            driver.implicitly_wait(5)
             driver.find_element(By.XPATH, "//*[@class='menu-item icon-only' and @aria-posinset='7']").click()
-            time.sleep(0.5)
+            driver.implicitly_wait(5)
             driver.find_element(By.XPATH, "//*[text()='New linked work item']").click()
-            time.sleep(1)
+            driver.implicitly_wait(10)
             combo_box = "//*[contains(@class , 'ms-ComboBox-Input')]"
             driver.find_element(By.XPATH, combo_box).click()
             pyautogui.hotkey('ctrl', 'a')
@@ -245,20 +245,30 @@ def testcase_creation():
             driver.find_element(By.XPATH, tc_title).send_keys(test_c_name)
             time.sleep(1)
             driver.find_element(By.XPATH, "//*[@id='ok']").click()
-            time.sleep(2)
-            pre_rep = "//*[contains(@data-placeholder,'Click to add PreRequisites')]"
-            driver.find_element(By.XPATH, pre_rep).click()
+            driver.implicitly_wait(10)
+            try:
+                pre_rep = "//*[contains(@data-placeholder,'Click to add PreRequisites')]"
+                driver.find_element(By.XPATH, pre_rep).click()
+            except:
+                driver.find_element(By.XPATH, '//*[@aria-label="PreRequisites section."]').click()
+                time.sleep(0.4)
+                pre_rep = "//*[contains(@data-placeholder,'Click to add PreRequisites')]"
+                driver.find_element(By.XPATH, pre_rep).click()
             pyautogui.hotkey('ctrl', 'a')
             pyautogui.press('backspace')
             driver.find_element(By.XPATH, pre_rep).send_keys(pre_req_data)
             time.sleep(1)
             test_data = "//*[contains(@data-placeholder,'Click to add Test Data')]"
             if testcase_data == 'None':
-                driver.find_element(By.XPATH, test_data).click()
-                pyautogui.hotkey('ctrl', 'a')
                 pass
             else:
-                driver.find_element(By.XPATH, test_data).click()
+                try:
+                    driver.find_element(By.XPATH, test_data).click()
+                except:
+                    driver.find_element(By.XPATH,'//*[@aria-label="Test Data section."]').click()
+                    time.sleep(0.4)
+                    driver.find_element(By.XPATH, test_data).click()
+
                 pyautogui.hotkey('ctrl', 'a')
                 pyautogui.press(test_data)
                 driver.find_element(By.XPATH, test_data).send_keys(testcase_data)
@@ -275,14 +285,14 @@ def testcase_creation():
                 if i > 0:
                     driver.find_element(By.XPATH, steps).click()
                 try:
-                    pyautogui.write(steps_data.split('\n')[i].split('.')[1].split(':')[0])
+                    pyautogui.write(steps_data.split('\n')[i].split('-')[1].split(':')[0])
                 except:
                     pyautogui.write(steps_data.split('\n')[i].split(':')[0])
                 time.sleep(0.5)
                 expected = f"//*[@id='row_vss_{new_value}_{i}']/div[3]"
                 driver.find_element(By.XPATH, expected).click()
                 try:
-                    pyautogui.write(steps_data.split('\n')[i].split('.')[1].split(':')[1])
+                    pyautogui.write(steps_data.split('\n')[i].split('-')[1].split(':')[1])
                 except:
                     pyautogui.write(steps_data.split('\n')[i].split(':')[1])
                 if i < int(len(steps_data.split('\n'))):
