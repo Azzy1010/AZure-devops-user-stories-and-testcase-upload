@@ -16,12 +16,13 @@ def browser_open():
     pyautogui.write('cmd')
     pyautogui.press('enter')
     time.sleep(1)
-    # pyautogui.write('cd "C:\Program Files\Google\Chrome\Application"')
-    # pyautogui.press('enter')
-    pyautogui.write('chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\Chromedata"')
+    pyautogui.write('cd "C:\Program Files\Google\Chrome\Application"')
+    pyautogui.press('enter')
+    pyautogui.write('chrome.exe --remote-debugging-port=9112 --user-data-dir="C:\Chromedata"')
     pyautogui.press('enter')
     pyautogui.write('exit')
     pyautogui.press('enter')
+
 
 def file_csv():
     root = tk.Tk()
@@ -51,19 +52,19 @@ def chrome_config():
     global driver
     browser_open()
     options = Options()
-    options.add_experimental_option("debuggerAddress", "localhost:9222")
+    options.add_experimental_option("debuggerAddress", "localhost:9112")
     driver = webdriver.Chrome(options=options)
     driver.maximize_window()
 
 
-def user_stories_creation():
-    driver.get('https://dev.azure.com/ObeikanDigitalSol/O3Scrum/_backlogs/backlog/O3Scrum%20Team/Features')
-    error = 0
+def user_stories_creation(sprint):
     turn = 0
     dataframe = openpyxl.load_workbook(f"{file_loc}")
     dataframe1 = dataframe.active
-    global title, priority_val, who_val, wants_to_do_val, so_that_val, given_val, when_val, then_val, feature, sprint
+    global title, priority_val, who_val, wants_to_do_val, so_that_val, given_val, when_val, then_val, feature
+
     for row in range(1, dataframe1.max_row):
+        driver.get('https://dev.azure.com/ObeikanDigitalSol/O3Scrum/_backlogs/backlog/O3Scrum%20Team/Features')
         time.sleep(3)
         pyautogui.hotkey('esc')
         time.sleep(0.5)
@@ -85,19 +86,15 @@ def user_stories_creation():
                 when_val = str(col[row].value)
             elif exc_turn == 7:
                 then_val = str(col[row].value)
-            elif exc_turn == 8:
-                sprint = str(col[row].value)
+            # elif exc_turn == 8:
+            #     sprint = str(col[row].value)
             exc_turn = exc_turn + 1
         try:
             driver.find_element(By.XPATH,
                                 f"//*[text()='{feature}']").click()
 
             driver.implicitly_wait(7)
-            for i in range(8):
-                pyautogui.hotkey('tab')
-            pyautogui.hotkey('backspace')
-            pyautogui.write(f'O3Scrum\Sprint {sprint}')
-            pyautogui.hotkey('enter')
+
             time.sleep(0.5)
             driver.find_element(By.XPATH, "//*[@class='menu-item icon-only' and @aria-posinset='7']").click()
             time.sleep(0.5)
@@ -125,9 +122,19 @@ def user_stories_creation():
             pyautogui.press('down')
             pyautogui.hotkey('enter')
             time.sleep(5)
+            for i in range(8):
+                pyautogui.hotkey('tab')
+            pyautogui.hotkey('backspace')
+            pyautogui.write(f'O3Scrum\Sprint {sprint}')
+            pyautogui.hotkey('enter')
             try:
                 who = '//*[@aria-label="Who"]'
-                driver.find_element(By.XPATH, who).click()
+                try:
+                    driver.find_element(By.XPATH, who).click()
+                except:
+                    driver.find_element(By.XPATH, '//*[@aria-label="User Story section."]').click()
+                    time.sleep(0.5)
+                    driver.find_element(By.XPATH, who).click()
                 driver.find_element(By.XPATH, who).clear()
                 driver.find_element(By.XPATH, who).send_keys(f'{who_val}')
                 time.sleep(0.5)
@@ -168,8 +175,9 @@ def user_stories_creation():
     driver.close()
 
 
-def testcase_creation():
-    driver.get('https://dev.azure.com/ObeikanDigitalSol/O3Scrum/_sprints/taskboard/O3Scrum%20Team/O3Scrum/Sprint%205')
+def testcase_creation(sprint):
+    driver.get(
+        f'https://dev.azure.com/ObeikanDigitalSol/O3Scrum/_sprints/taskboard/O3Scrum%20Team/O3Scrum/Sprint%20{sprint}')
     time.sleep(3)
     pyautogui.press('esc')
     dataframe = openpyxl.load_workbook(f"{test_Cases_loc}")
@@ -240,20 +248,26 @@ def testcase_creation():
             pyautogui.hotkey('enter')
             tc_title = "//*[contains(@id,'dialog-label')]"
             driver.find_element(By.XPATH, tc_title).click()
-            pyautogui.hotkey('ctrl', 'a')
-            pyautogui.press('backspace')
+            try:
+                pyautogui.hotkey('ctrl', 'a')
+                pyautogui.press('backspace')
+            except:
+                pass
+            time.sleep(0.5)
             driver.find_element(By.XPATH, tc_title).send_keys(test_c_name)
-            time.sleep(1)
+            time.sleep(0.2)
             driver.find_element(By.XPATH, "//*[@id='ok']").click()
-            driver.implicitly_wait(10)
+            time.sleep(4)
             try:
                 pre_rep = "//*[contains(@data-placeholder,'Click to add PreRequisites')]"
                 driver.find_element(By.XPATH, pre_rep).click()
+                time.sleep(1)
             except:
                 driver.find_element(By.XPATH, '//*[@aria-label="PreRequisites section."]').click()
                 time.sleep(0.4)
                 pre_rep = "//*[contains(@data-placeholder,'Click to add PreRequisites')]"
                 driver.find_element(By.XPATH, pre_rep).click()
+                time.sleep(1)
             pyautogui.hotkey('ctrl', 'a')
             pyautogui.press('backspace')
             driver.find_element(By.XPATH, pre_rep).send_keys(pre_req_data)
@@ -265,7 +279,7 @@ def testcase_creation():
                 try:
                     driver.find_element(By.XPATH, test_data).click()
                 except:
-                    driver.find_element(By.XPATH,'//*[@aria-label="Test Data section."]').click()
+                    driver.find_element(By.XPATH, '//*[@aria-label="Test Data section."]').click()
                     time.sleep(0.4)
                     driver.find_element(By.XPATH, test_data).click()
 
@@ -326,19 +340,22 @@ choice = int(pyautogui.prompt(
     text='Please press 1 for [User Stories] 2 for [testcases] and 3 for both (user stories --> testcases'))
 
 if choice == 1:
+    sprint = int(pyautogui.prompt(text="Sprint?", title='Alert!'))
     pyautogui.alert(text='Select User Stories file')
     file_loc = file_csv()
     rows_counter(file_loc)
     time.sleep(1)
     chrome_config()
-    user_stories_creation()
+    user_stories_creation(sprint)
 elif choice == 2:
+    sprint = int(pyautogui.prompt(text="Sprint?", title='Alert!'))
     pyautogui.alert(text='Select testcases file')
     test_Cases_loc = test_cases()
     time.sleep(1)
     chrome_config()
-    testcase_creation()
+    testcase_creation(sprint)
 elif choice == 3:
+    sprint = int(pyautogui.prompt(text="Sprint?", title='Alert!'))
     pyautogui.alert(text='Select User Stories file')
     file_loc = file_csv()
     pyautogui.alert(text='Select testcases file')
@@ -346,7 +363,7 @@ elif choice == 3:
     rows_counter(file_loc)
     time.sleep(1)
     chrome_config()
-    user_stories_creation()
-    testcase_creation()
+    user_stories_creation(sprint)
+    testcase_creation(sprint)
 else:
     pyautogui.alert(text='Wrong choice entered!\nValue should be <= 4', title='Alert!')
